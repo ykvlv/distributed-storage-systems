@@ -1,8 +1,10 @@
+-- Способ передать параметр в анонимный блок
+\set QUIET 1
+\prompt 'Введите название таблицы: ' name_table
+set custom.name_table to :name_table;
+
 do $$
     declare
-        _schema       text     := ${LAB1_SCHEMA};
-        _table        text     := ${LAB1_TABLE};
-
         _record       record;
         _prev         smallint := 0;
         _prev_con     bool     := false;
@@ -12,8 +14,11 @@ do $$
         _con_record   record;
         _con_flag     bool;
     begin
-        raise info 'Схема: %', _schema;
-        raise info 'Таблица: % ', _table;
+        if not exists(select 1 from pg_tables where schemaname = current_schema() and tablename = current_setting('custom.name_table')) then
+            raise exception '%', format('Таблица %s не найдена. Завершение работы.', current_setting('custom.name_table'));
+        end if;
+
+        raise info 'Таблица: % ', current_setting('custom.name_table');
         raise info ' ';
         raise info 'No. Имя столбца                  Аттрибуты';
         RAISE INFO '--- ---------------------------- -----------------------------------------------';
@@ -37,8 +42,8 @@ do $$
                                           from pg_class
                                           where relnamespace = (select oid
                                                                 from pg_namespace
-                                                                where pg_namespace.nspname = _schema)
-                                            and relname = _table)
+                                                                where pg_namespace.nspname = current_schema())
+                                            and relname = current_setting('custom.name_table'))
                           and attnum > 0
                         order by attnum)
             loop
@@ -76,7 +81,7 @@ do $$
                             end loop;
                         _con_type_str = format('References %s(%s)', _record.relname, _con_tmp);
                     end if;
-                    raise info '%', format('%-32s %s %s %s', E'\u00A0', 'Constr  :', _record.conname, _con_type_str);
+                    raise info '%', format('%-32s %s "%s" %s', E'\u00A0', 'Constr  :', _record.conname, _con_type_str);
                     _prev_con = true;
                 end if;
             end loop;
