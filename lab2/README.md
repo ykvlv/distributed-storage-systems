@@ -10,15 +10,6 @@
 
 На выделенном узле создать и сконфигурировать новый кластер БД, саму БД, табличные пространства и новую роль в соответствии с заданием. Произвести наполнение базы.
 
-Отчёт должен содержать все команды по настройке, а также измененные строки конфигурационных файлов.
-
-**Подключение к узлу через helios**
-
-1) ssh s666666@se.ifmo.ru -p 2222
-1) ssh пользователь@узел
-
-Персональный пароль для работы с узлом выдается преподавателем. Обратите внимание, что домашняя директория пользователя /var/postgres/$LOGNAME
-
 **Инициализация кластера БД**
 
 - Имя узла — pg139.
@@ -52,11 +43,8 @@
 ```bash
 export PGDATA=$HOME/u07/dtt88
 export PGHOST=pg139
-export MYLOCALE=ru_RU.KOI8-R
-export MYENCODE=KOI8-R
-export MYUSERNAME=postgres1
 mkdir -p $HOME/u07/dtt88 $HOME/u02/dcj13 $HOME/u05/dcj22
-initdb --locale=$MYLOCALE --encoding=$MYENCODE --username=$MYUSERNAME --waldir=$HOME/u02/dcj13
+initdb --locale=ru_RU.KOI8-R --encoding=KOI8 --username=postgres1 --waldir=$HOME/u02/dcj13
 ```
 
 Вывод
