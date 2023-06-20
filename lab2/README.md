@@ -83,7 +83,7 @@ initdb: предупреждение: включение метода аутен
 Зададим пароль пользователю
 
 ```postgresql
-psql -h localhost -d postgres
+[postgres1@pg139 ~]$ psql -h localhost -d postgres
 postgres=# ALTER USER postgres1 WITH PASSWORD 'postgres1';
 ```
 
@@ -115,7 +115,7 @@ password_encryption = scram-sha-256
 
 # Logging
 log_min_messages = warning
-log_directory = 'pg_log'
+log_directory = 'log'
 logging_collector = on
 log_checkpoints = on
 
@@ -133,53 +133,49 @@ fsync = on                    # синхронная запись на диск
 commit_delay = 100            # задержка перед подтверждением транзакции
 ```
 
-
-
 Перезапускаем сервер: `pg_ctl restart -D /var/db/postgres1/u07/dtt88 `
-
-Теперь можем подключаться через команду: `psql -h pg139 -U postgres1 -d postgres -p 9108`
 
 ### Дополнительные табличные пространства и наполнение
 
 Создадим новое табличное пространство
 
 ```postgresql
-[postgres1@pg139 ~] psql -h pg139 -U postgres1 -d postgres -p 9108
+[postgres1@pg139 ~]$ psql -h pg139 -U postgres1 -d postgres -p 9108
 postgres=# CREATE TABLESPACE indexspace LOCATION '/var/db/postgres1/u05/dcj22';
 ```
 
 Создадим новую БД whitebunny на основе template0
 
 ```postgresql
-[postgres1@pg139 ~] createdb -p 9108 -T template0 whitebunny
-[postgres1@pg139 ~] psql -h pg139 -U postgres1 -d postgres -p 9108
-postgres=# CREATE TABLE my_table (id bigserial primary key, name text, info text);
-postgres=# CREATE INDEX ON my_table(name) TABLESPACE indexspace;
-postgres=# CREATE ROLE postgres404 LOGIN PASSWORD 'postgres404';
-postgres=# GRANT SELECT, INSERT ON my_table TO postgres404;
+[postgres1@pg139 ~]$ createdb -p 9108 -T template0 whitebunny
+[postgres1@pg139 ~]$ psql -h pg139 -U postgres1 -d whitebunny -p 9108
+whitebunny=# CREATE TABLE my_table (id bigserial primary key, name text, info text);
+whitebunny=# CREATE INDEX ON my_table(name) TABLESPACE indexspace;
+whitebunny=# CREATE ROLE postgres404 LOGIN PASSWORD 'postgres404';
+whitebunny=# GRANT SELECT, INSERT ON my_table TO postgres404;
 ```
 
 От имени новой роли наполним базу осмысленном набором текстовых данных
 
 ```postgresql
-[postgres1@pg139 ~] psql -h pg139 -U postgres404 -d postgres -p 9108
-postgres=> INSERT INTO my_table (id, name, info) VALUES (1, 'Grisha', 'likes RSHD');
-postgres=> INSERT INTO my_table (id, name, info) VALUES (2, 'Nikolaev', 'dislikes Grisha');
-postgres=> SELECT * FROM my_table;
+[postgres1@pg139 ~]$ psql -h pg139 -U postgres404 -d whitebunny -p 9108
+whitebunny=> INSERT INTO my_table (id, name, info) VALUES (1, 'Grisha', 'likes RSHD');
+whitebunny=> INSERT INTO my_table (id, name, info) VALUES (2, 'Nikolaev', 'dislikes Grisha');
+whitebunny=> SELECT * FROM my_table;
  id |   name   |      info       
 ----+----------+-----------------
   1 | Grisha   | likes RSHD
   2 | Nikolaev | dislikes Grisha
 (2 строки)
 
-postgres=> UPDATE my_table SET info = 'likes Grisha' WHERE name = 'Nikolaev' and id = 1;
+whitebunny=> UPDATE my_table SET info = 'likes Grisha' WHERE name = 'Nikolaev' and id = 1;
 ОШИБКА:  нет доступа к таблице my_table
 ```
 
 Выведем список всех табличных пространств кластера и содержащиеся в них объекты
 
 ```postgresql
-postgres=# SELECT t.spcname, STRING_AGG(c.relname, E'\n')
+whitebunny=# SELECT t.spcname, STRING_AGG(c.relname, E'\n')
            FROM pg_class c
            LEFT JOIN pg_tablespace t ON c.reltablespace = t.oid
            GROUP BY t.spcname
