@@ -80,6 +80,8 @@ initdb: предупреждение: включение метода аутен
 
 ### Конфигурация и запуск сервера БД
 
+Запустим сервер: `pg_ctl -D /var/db/postgres1/u07/dtt88 start`
+
 Зададим пароль пользователю
 
 ```postgresql
@@ -93,7 +95,6 @@ postgres=# ALTER USER postgres1 WITH PASSWORD 'postgres1';
 
 ```bash
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
-
 host    all             all             all                     scram-sha-256
 
 # "local" is for Unix domain socket connections only
